@@ -19,7 +19,7 @@ from datetime import datetime as dt
 from utils3 import *
 from toKeras3 import *
 
-BATCHSIZE = 240
+BATCHSIZE = 180
 NUMPERCLASS = 480
 TRAINSPLIT = 0.8
 EPOCHS = 7
@@ -215,7 +215,7 @@ print("Generation complete, now training model...")
 
 # Check if training proccess produces any errors, sending a message to Discord
 try:
-    for i in range(1, 4):
+    for i in range(2, 4):
         model = getModel(d_num=i)
         time_before = dt.now()
         model, history = train(model, train_generator, test_generator)
