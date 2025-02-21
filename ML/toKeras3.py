@@ -8,7 +8,7 @@ import numpy as np
 from PIL import Image
 import sys
 
-BATCHSIZE = 180
+BATCHSIZE = 68
 
 def transformTensor(arr):
     arr = tf.cast(arr, dtype=tf.float32)

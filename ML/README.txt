@@ -14,4 +14,4 @@ Issues and Solutions:
     Solution: "BATCHSIZE" variable in "mirrored.py" and "toKeras3.py" must match
 
     Issue:    OOM (Out Of Memory) can occur when setting "BATCHSIZE" to a number above the limit
-    WIP:      Seems like BATCHSIZE=64 per GPU used is a good number, but OOM occured with 192 for 3 GPUs
+    Solution: "BATCHSIZE" has to be <= 68 per GPU, so maximum for 3 GPUs running simultaneously is 204

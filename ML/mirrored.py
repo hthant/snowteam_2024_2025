@@ -19,7 +19,7 @@ from datetime import datetime as dt
 from utils3 import *
 from toKeras3 import *
 
-BATCHSIZE = 180
+BATCHSIZE = 68
 NUMPERCLASS = 480
 TRAINSPLIT = 0.8
 EPOCHS = 7
@@ -215,19 +215,22 @@ print("Generation complete, now training model...")
 
 # Check if training proccess produces any errors, sending a message to Discord
 try:
-    for i in range(2, 4):
-        model = getModel(d_num=i)
+    gput = []
+    for i in range(0, 10):
+        model = getModel(d_num=1)
         time_before = dt.now()
         model, history = train(model, train_generator, test_generator)
         time_after = dt.now()
         time_dif = time_after - time_before
         minutes = divmod(time_dif.total_seconds(), 60)
-        print("Training complete! Total minutes taken to train {} epochs on {} GPUs with {} images: {:.2f} minutes".format(EPOCHS, 1, NUMPERCLASS, minutes[0]))
+        #print("Training complete! Total minutes taken to train {} epochs on {} GPUs with {} images: {:.2f} minutes".format(EPOCHS, 1, NUMPERCLASS, minutes[0]))
+        gput.append(minutes)
     webhook = dw(url=url, content="ML Training Done")
     # 3 GPUs: 227 minutes
     # 2 GPUs: 219 minutes
     # 1 GPU : 219 minutes
     response = webhook.execute()
+    print(gput)
 
 # Any errors are caught here
 except Exception as e:
