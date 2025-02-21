@@ -22,7 +22,7 @@ from toKeras3 import *
 BATCHSIZE = 68
 NUMPERCLASS = 480
 TRAINSPLIT = 0.8
-EPOCHS = 7
+EPOCHS = 4
 
 url = "https://discord.com/api/webhooks/1306737450793570355/85IQUfMzkDEDJMSPWKJh1UfBcXFWWncCf5VOksut5KYnzgtZFF-12w8_Dniix66Fj0yJ"
 
