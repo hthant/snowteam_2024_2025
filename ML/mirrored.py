@@ -144,6 +144,7 @@ def getML(ML_type=0):
     add_model = Model(inputs=[input_shape1, input_shape2, input_shape3], outputs=add_model)
     return add_model
 
+# Defines the model and configures GPU for training it
 def getModel():
     devices = tf.config.list_physical_devices('GPU')
     devices_names = [d.name.split("e:")[1] for d in devices]
@@ -157,6 +158,7 @@ def getModel():
     '''
 
     mirrored_strategy = tf.distribute.MirroredStrategy(devices=devices_names)
+    # Select base model here, along with other hyperparamters like learning rate, loss function, etc.
     with mirrored_strategy.scope():
         model = getML(ML_type=1)
         model.compile(optimizer = RMSprop(learning_rate=0.0001), 
@@ -164,6 +166,7 @@ def getModel():
                         metrics = ['acc'])
     return model
 
+# Saves model metrics in a custom CSV file in the 'csv' directory
 class CSVLogger(Callback):
     def __init__(self, csv_path):
         super().__init__()
@@ -186,6 +189,8 @@ class CSVLogger(Callback):
             writer = csv.writer(file)
             writer.writerow([epoch + 1, train_loss, train_acc, val_loss, val_acc])
 
+# Defines model checkpoints such that only better performing models based on validation accuracy
+# have thier weights saved after each epoch
 class CustomModelCheckpoint(Callback):
     def __init__(self, filepath, **kwargs):
         super().__init__()
@@ -224,6 +229,8 @@ class CustomModelCheckpoint(Callback):
             except Exception as e:
                 print(f"\nError during saving: {e}")
 
+# Prepares model for training by creating a file for saving model weights and a CSV file to store model
+# metrics for later analysis
 def train(model, train_generator, validation_generator):
     filepath = '/home/snow/nashein/hthant/weights/effnetb3/shape/jasem-w-{epoch:02d}.hdf5'
     csv_path = "/home/snow/smij/csv/j_training_metrics.csv"
@@ -299,7 +306,7 @@ train_generator = CustomTFDataset(train_images_generator, train_labels_generator
 test_generator = CustomTFDataset(test_images_generator, test_labels_generator, transform=transformTensor, target_transform=transformLabel)
 print("Generation complete, now training model...")
 
-# Check if training proccess produces any errors, sending a message to Discord
+# Check if training proccess produces any errors, sending a message to Discord after program termination/completion
 try:
     gput = []
     for i in range(0, 10):
