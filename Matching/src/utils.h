@@ -58,8 +58,8 @@ Mat convert1dVectorToMat(vector<double> input);
 
 vector<string> split(const string &s, char delimiter);
 
-void combineFiles(string filename1, string filename2, string filename3, string outFileName);
+void combineFiles(vector<string> enablePair, vector<string> outputFilePair, vector<pair<int, int>> indexPair, string outFileName);
 
-void createFullList(string filePath0, string filePath1, string filePath2, string combinedFileName, string outFileName);
+void createFullList(vector<string> cameraPath, vector<string> cameraEnable, string combinedFileName, string outFileName);
 
 #endif
