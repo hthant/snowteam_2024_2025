@@ -11,7 +11,7 @@ OJ         = ../obj
 CFLAGS     := $(shell pkg-config --cflags opencv4)
 LIBS       := $(shell pkg-config --libs opencv4)
 
-CXXFLAGS   = -g -Wall -std=c++17
+CXXFLAGS   = -g -Wall -std=c++17 -I/home/nvidia/SnowTeam/json/include
 
 %: %.cpp
 	g++ $(CFLAGS) $(LIBS) -o $@ $<
@@ -40,7 +40,7 @@ $(OJ):
 	mkdir -p $(OJ)
 
 $(BINDIR)/snowMatching: $(OJ)/main.o $(OJ)/utils.o $(OJ)/matchingCode.o $(OJ)/fundamentalMatrix.o
-	g++ -o $@ $(OJ)/*.o $(LIBS) $(CFLAGS)
+	g++ -o $@ $(OJ)/*.o $(LIBS) $(CFLAGS) -Wl,-rpath=/home/nvidia/SnowTeam/opencv/build/lib
 
 $(OJ)/main.o: main.cc $(OJ)/utils.o $(OJ)/matchingCode.o $(OJ)/fundamentalMatrix.o
 	g++ $(CXXFLAGS) $(CFLAGS) -c main.cc -o $@

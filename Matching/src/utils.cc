@@ -284,95 +284,68 @@ vector<string> split(const string &s, char delimiter) {
 
 // Combines 3 files into one file if two pairs share an element, it makes a set of three elements all refering to the same snowflake,
 // if not then it just adds the pair to the list
-void combineFiles(string filename1, string filename2, string filename3, string outFileName){
-    ifstream file1(filename1);
-    ifstream file2(filename2);
-    ifstream file3(filename3);
-    string line;
-    vector<vector<string>> fileData1;
-    vector<vector<string>> fileData2;
-    vector<vector<string>> fileData3;
+void combineFiles(vector<string> enablePair, vector<string> outputFilePair, vector<pair<int, int>> indexPair, string outFileName){
+    vector<vector<vector<string>>> combinedFileData;
+    for(size_t i = 0; i < enablePair.size(); i++) {
+        if(enablePair[i] == "True"){
+            ifstream file(outputFilePair[i]);
+            if(file.is_open()){
+                vector<vector<string>> individualFileData;
+                string line;
+                while (getline(file, line)) {
+                    individualFileData.push_back(split(line, ','));
+                }
+                file.close();
+                combinedFileData.push_back(individualFileData);
+            }
+        }
+        else{
+            combinedFileData.push_back({{}});
+        }
+    }
+
     vector<vector<string>> outFileData;
-    
-    if (file1.is_open()) {
-        while (getline(file1, line)) {
-            fileData1.push_back(split(line, ','));
-        }
-        file1.close();
-    }
-    if (file2.is_open()) {
-        while (getline(file2, line)) {
-            fileData2.push_back(split(line, ','));
-        }
-        file2.close();
-    }
-    if (file3.is_open()) {
-        while (getline(file3, line)) {
-            fileData3.push_back(split(line, ','));
-        }
-        file3.close();
-    }
-    for( auto elem1 : fileData1 ) {
-        bool contains = false;
-        for ( auto elemOut : outFileData){
-            if(elem1[0] == elemOut[0]) {
-                elemOut[1] = elem1[1];
-                contains = true;
-                break;
-            }
-            if(elem1[1] == elemOut[1]) {
-                elemOut[0] = elem1[0];
-                contains = true;
-                break;
-            }
-        }
-        if(!contains) {
-            vector<string> newLine({elem1[0], elem1[1], "NA"});
-            outFileData.push_back(newLine);
-        }
-    }
-    for( auto elem2 : fileData2 ) {
-        bool contains = false;
-        for ( auto elemOut : outFileData){
-            if(elem2[0] == elemOut[0]) {
-                elemOut[2] = elem2[1];
-                contains = true;
-                break;
-            }
-            if(elem2[1] == elemOut[2]) {
-                elemOut[0] = elem2[0];
-                contains = true;
-                break;
+
+    for(size_t i = 0; i < combinedFileData.size(); i++) {
+        if(enablePair[i] == "True"){
+            for(auto row : combinedFileData[i]) {
+                bool contains = false;
+                for ( auto outRow : outFileData){
+                    if(row[0] == outRow[indexPair[i].first]) {
+                        outRow[indexPair[i].second] = row[1];
+                        contains = true;
+                        break;
+                    }
+                    if(row[1] == outRow[indexPair[i].second]) {
+                        outRow[indexPair[i].first] = row[0];
+                        contains = true;
+                        break;
+                    }
+                }
+                if(!contains) {
+                    vector<string> newLine;
+                    for(size_t j = 0; j < 7; j++){
+                        if(indexPair[i].first == (int) j) {
+                            newLine.push_back(row[0]);
+                        }
+                        else if(indexPair[i].second == (int) j) {
+                            newLine.push_back(row[1]);
+                        }
+                        else{
+                            newLine.push_back("NA");
+                        }
+                    }
+                    outFileData.push_back(newLine);
+                }
             }
         }
-        if(!contains) {
-            vector<string> newLine({elem2[0], "NA", elem2[1]});
-            outFileData.push_back(newLine);
-        }
     }
-    for( auto elem3 : fileData3 ) {
-        bool contains = false;
-        for ( auto elemOut : outFileData){
-            if(elem3[0] == elemOut[1]) {
-                elemOut[2] = elem3[1];
-                contains = true;
-                break;
-            }
-            if(elem3[1] == elemOut[2]) {
-                elemOut[1] = elem3[0];
-                contains = true;
-                break;
-            }
-        }
-        if(!contains) {
-            vector<string> newLine({ "NA", elem3[0], elem3[1]});
-            outFileData.push_back(newLine);
-        }
-    }
+
     ofstream outFile(outFileName);
     if (outFile.is_open()) {
         for (auto row : outFileData) {
-            outFile << row[0] << "," << row[1] << "," << row[2] << "\n";
+            outFile << row[0] << "," << row[1] << "," << row[2] << "," << row[3] << "," << row[4] << "," 
+                    << row[5] << "," << row[6] << "\n";
         }
     }
     outFile.close();
@@ -380,52 +353,56 @@ void combineFiles(string filename1, string filename2, string filename3, string o
  
 // Takes the combined file list and all the individual file lists. If any file from the individual list are not included in the combined file list
 // they are added to the output
-void createFullList(string filePath0, string filePath1, string filePath2, string combinedFileName, string outFileName){
-    vector<filesystem::directory_entry> cam0Files;
-    vector<filesystem::directory_entry> cam1Files;
-    vector<filesystem::directory_entry> cam2Files;
-
-    cam0Files = vectorizeFileDirectory(filePath0);
-    cam1Files = vectorizeFileDirectory(filePath1);
-    cam2Files = vectorizeFileDirectory(filePath2);
-
-    ifstream combinedFile(combinedFileName);
-    ofstream outFile(outFileName);
-    vector<string> combinedFiles0;
-    vector<string> combinedFiles1;
-    vector<string> combinedFiles2;
+void createFullList(vector<string> cameraPath, vector<string> cameraEnable, string combinedFileName, string outFileName){
+    ifstream combinedFileRaw(combinedFileName);
+    vector<vector<string>> combinedFile;
     string line;
     vector<string> combinedLine;
+    vector<filesystem::directory_entry> camFiles;
+    bool contains;
+    vector<string> newLine;
 
-    if (combinedFile.is_open()) {
-        while (getline(combinedFile, line)) {
+    if (combinedFileRaw.is_open()) {
+        while (getline(combinedFileRaw, line)) {
             combinedLine = split(line, ',');
-            combinedFiles0.push_back(combinedLine[0]);
-            combinedFiles1.push_back(combinedLine[1]);
-            combinedFiles2.push_back(combinedLine[2]);
-            outFile << line << "\n";
-
+            combinedFile.push_back(combinedLine);
         }
-        combinedFile.close();
-    }
-    
-
-    for (const auto& photo : cam0Files){
-        if(!(find(combinedFiles0.begin(), combinedFiles0.end(), photo.path().string()) != combinedFiles0.end())) {
-            outFile << photo.path().string() << "," << "NA" << "," << "NA" << "\n";
-        } 
-    }
-    for (const auto& photo : cam1Files){
-        if(!(find(combinedFiles1.begin(), combinedFiles1.end(), photo.path().string()) != combinedFiles1.end())) {
-            outFile << "NA" << "," << photo.path().string() << "," << "NA" << "\n";
-        } 
-    }
-    for (const auto& photo : cam2Files){
-        if(!(find(combinedFiles2.begin(), combinedFiles2.end(), photo.path().string()) != combinedFiles2.end())) {
-            outFile << "NA" << "," << "NA" << "," << photo.path().string() << "\n";
-        } 
+        combinedFileRaw.close();
     }
 
+    for(size_t i = 0; i < cameraPath.size(); i++){
+        if(cameraEnable[i] == "True"){
+            camFiles = vectorizeFileDirectory(cameraPath[i]);
+            for(const auto& photo : camFiles) {
+                contains = false;
+                for(size_t j = 0; j < combinedFile.size(); j ++){
+                    if(photo.path().string() == combinedFile[j][i]){
+                        contains = true;
+                    }
+                }
+                if(!contains) {
+                    vector<string> newLine;
+                    for(size_t k = 0; k < 7; k++){ 
+                        if(i == k) {
+                            newLine.push_back(photo.path().string());
+                        }
+                        else{
+                            newLine.push_back("NA");
+                        }
+                    }
+                    combinedFile.push_back(newLine);
+                }
+            }
+        }
+    }
+
+    ofstream outFile(outFileName);
+    if (outFile.is_open()) {
+        for (auto row : combinedFile) {
+            outFile << row[0] << "," << row[1] << "," << row[2] << "," << row[3] << "," << row[4] << "," 
+                    << row[5] << "," << row[6] << "\n";
+        }
+    }
     outFile.close();
 }
 

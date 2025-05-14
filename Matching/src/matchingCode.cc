@@ -30,7 +30,6 @@ void matchPics(vector<filesystem::directory_entry> cam1Images, vector<filesystem
     map<string, vector<filesystem::directory_entry>>  intersectionMap1;
     map<string, vector<filesystem::directory_entry>>  intersectionMap2;
 
-    cout << "9\n" << flush;
     for (const auto& entry : cam1Images){
         cam1Map[entry.path().stem().string().substr(5,6)].push_back(entry);
     }
@@ -39,7 +38,6 @@ void matchPics(vector<filesystem::directory_entry> cam1Images, vector<filesystem
     }
     
     tie(intersectionMap1, intersectionMap2) = intersectMaps(cam1Map, cam2Map);
-    cout << "10\n" << flush;
     // For every intersection number, find the X and Y coordinates for that number on both camera
     // If there was an intersection at 000003
     // outputCam1 contains 911, 960 -- X and Y coordinates for the 000003 picture
@@ -54,7 +52,6 @@ void matchPics(vector<filesystem::directory_entry> cam1Images, vector<filesystem
     for (auto [key, value] : intersectionMap2) {
         outputCam2[key] = toOutput(value);
     }
-    cout << "11\n" << flush;
     // cout << "Number of OutputCam1: " << outputCam1.size() << "\n";
     // cout << "Number of OutputCam2: " << outputCam2.size() << "\n";
 
@@ -66,7 +63,6 @@ void matchPics(vector<filesystem::directory_entry> cam1Images, vector<filesystem
     for ( auto [key, value] : outputCam1 )  {
         indiciesMap[key] = findCorrespondIndicies(outputCam1[key], outputCam2[key], fundamentalMatrix, {1920,1200}, {2448,2048});
     }
-    cout << "12\n" << flush;
     vector<pair<string, string>> pairedFiles;
     for ( auto [key, value] : indiciesMap) {
         for(size_t i = 0; i < value.first.size(); i++){
@@ -79,7 +75,6 @@ void matchPics(vector<filesystem::directory_entry> cam1Images, vector<filesystem
     }
 
     // These Pairs are then written to the output file in the format <filename>,<filename>\n
-    cout << "13\n" << flush;
     ofstream outFile(outputFile);
     if (outFile.is_open()) {
         for (auto value : pairedFiles) {
