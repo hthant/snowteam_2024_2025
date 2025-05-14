@@ -1,5 +1,5 @@
-Jasem Al-Shukry         04-11-2025 (MM-DD-YYYY)
-                        2025, April 11th
+Jasem Al-Shukry         05-05-2025 (MM-DD-YYYY)
+jasemmfs@gmail.com      2025, May 5th
 
 Machine Learning Code for Snowflake Classification
 
@@ -11,6 +11,11 @@ Purpose:
     End goal is to achieve an acceptable program that outperforms original model by Hein Thant through various
     hyperparameter sweeping techniques.
 
+Connecting to the GPU server:
+    Make sure you're in the CSU VPN (for remote working, download GlobalProtect via CSU's websites). In Visual Studio, type 
+    "ssh snow@129.82.224.175" with password "Snowcam" when prompted. You'll mostly be working in the "snow/smij" subdirectory,
+    but the rest of the files are used implicitly / are for reference.
+
 How to run the code:
     IMPORTANT: Before executing any files, make sure to run "conda activate mascDB" first. This is because that the "mascDB"
     environment has all the necessary Python files to allow training of the machine learning algorithm. Without doing so, some
@@ -20,13 +25,19 @@ How to run the code:
     file that executes these commands sequentially (Look at GPU_test.sh for example):
     - "python mirrored.py":
         Runs "mirrored.py", outputs to terminal.
+    - "python mirrored.py > log-mirrored.txt":
+        Runs "mirrored.py" and prints output to "log-mirrored.txt".
     - "python mirrored.py &> log-mirrored.txt":
-        Runs "mirrored.py", prints output to "log-mirrored.txt".
+        Runs "mirrored.py" in background (indicated by the '&'), prints output to "log-mirrored.txt".
     - "python mirrored.py &> log-mirrored.txt & disown":
-        Runs "mirrored.py" in background, prints output to "log-mirrored.txt". Allows for other terminal operations
-        without interrupting program execution.
+        Runs "mirrored.py" in background, prints output to "log-mirrored.txt". 'disown' allows command to run even if
+        user is logged out (i.e. helpful if you need to do something else but can't keep an eye on execution).
     - "CUDA_VISIBLE_DEVICES=n python mirrored.py":
         Runs "mirrored.py" with GPU n being the only usable GPU to code, where n is 0, 1, or 2 depending on the chosen GPU.
+    - "./mirrored.py"
+        If "mirrored.py" has "#![insert Python compiler path here]" then this command runs the script using the Python
+        compiler, as opposed to the above example commands. I personally didn't use this, however if you feel this easier
+        for you, you're more than welcome to edit the files to implement this convention.
 
     Useful commands for terminal usage:
     - "bash example.sh":
@@ -42,22 +53,16 @@ How to run the code:
         unexpectedly stopped. To forcibly stop a program, select it and press the K key to kill it. Press Q to exit.
 
 Important Files:
+    Any files in the "smij" directory that is not in a sub-directory and also not mentioned here are either
+    intuitive, simple, or are available for reference (not actively being used).
     - utils3.py:
         Low-level utility code concerning database strcuturing.
     - toKeras3.py: 
-        High-level utility code concerning dataset configuration.
+        High-level utility code concerning dataset configuration, particularly ensuring that the dataset used for training
+        the algorithm is compatible with TensorFlow.
     - mirrored.py: 
-        Base code for training ML model with Mirrored Strategy configuration for GPUs. 
-        Useful for hyperparameter sweeping or testing aspects of the code.
-    - central.py:  
-        Identical to mirrored.py, but uses Central Storage Strategy for GPU configuration.
-    - log-mirrored.txt:
-        Text file to show output of mirrored.py, used in hyperparameter sweeping for output analysis.
-    - log-central.txt:
-        Similar to log-mirrored.txt, but for central.py.
-    - GPU_test.sh:
-        Bash script for running 2 Python files (particularly mirrored.py and central.py) sequentially and sending their
-        respective outputs to each of log-mirrored.txt and log-central.txt.
+        Base code for training ML model with Mirrored Strategy configuration for GPUs. This is the main file that you will be 
+        using to train the ML model.
 
 Issues and Solutions:
     Issue:    "train" method in "mirrored.py" does not work as intended. Error message is the following:

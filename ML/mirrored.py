@@ -20,10 +20,11 @@ import csv
 from utils3 import *
 from toKeras3 import *
 
+#BATCHSIZE is inherited from toKeras3.py, no need to define it here
 #BATCHSIZE = 204
-NUMPERCLASS = 480
+NUMPERCLASS = 4800
 TRAINSPLIT = 0.8
-EPOCHS = 8
+EPOCHS = 20
 
 url = "https://discord.com/api/webhooks/1306737450793570355/85IQUfMzkDEDJMSPWKJh1UfBcXFWWncCf5VOksut5KYnzgtZFF-12w8_Dniix66Fj0yJ"
 
@@ -232,7 +233,7 @@ class CustomModelCheckpoint(Callback):
 # Prepares model for training by creating a file for saving model weights and a CSV file to store model
 # metrics for later analysis
 def train(model, train_generator, validation_generator):
-    filepath = '/home/snow/nashein/hthant/weights/effnetb3/shape/jasem-w-{epoch:02d}.hdf5'
+    filepath = '/mnt/nas/hthant/weights/effnetb3/shape/jasem-w-{epoch:02d}.hdf5'
     csv_path = "/home/snow/smij/csv/j_training_metrics.csv"
     callbacks = [CustomModelCheckpoint(filepath=filepath), CSVLogger(csv_path=csv_path)]
     history = model.fit(
@@ -252,27 +253,27 @@ path2 = ''
 # Midway point between 1000 and 2000, rounds down to save time by excluding image augmentation
 if(NUMPERCLASS < 1500):
     NUMPERCLASS = 1000
-    path1 = '/home/snow/nashein/hthant/weights/effnetb3/imageCheckPoint/1000_training_shape.pkl'
-    path2 = '/home/snow/nashein/hthant/weights/effnetb3/imageCheckPoint/1000_test_shape.pkl'
+    path1 = '/mnt/nas/hthant/weights/effnetb3/imageCheckPoint/1000_training_shape.pkl'
+    path2 = '/mnt/nas/hthant/weights/effnetb3/imageCheckPoint/1000_test_shape.pkl'
 
 # Midway point between 2000 and 3000, rounds down to save time by excluding image augmentation
 elif(NUMPERCLASS < 2500):
     NUMPERCLASS = 2000
-    path1 = '/home/snow/nashein/hthant/weights/effnetb3/imageCheckPoint/2000_training_shape.pkl'
-    path2 = '/home/snow/nashein/hthant/weights/effnetb3/imageCheckPoint/2000_test_shape.pkl'
+    path1 = '/mnt/nas/hthant/weights/effnetb3/imageCheckPoint/2000_training_shape.pkl'
+    path2 = '/mnt/nas/hthant/weights/effnetb3/imageCheckPoint/2000_test_shape.pkl'
 
 # Midway point between 3000 and 4800, rounds down to save time by excluding image augmentation
 elif(NUMPERCLASS < 3900):
     NUMPERCLASS = 3000
-    path1 = '/home/snow/nashein/hthant/weights/effnetb3/imageCheckPoint/3000_training_shape.pkl'
-    path2 = '/home/snow/nashein/hthant/weights/effnetb3/imageCheckPoint/3000_test_shape.pkl'
+    path1 = '/mnt/nas/hthant/weights/effnetb3/imageCheckPoint/3000_training_shape.pkl'
+    path2 = '/mnt/nas/hthant/weights/effnetb3/imageCheckPoint/3000_test_shape.pkl'
 
 # Any NUMPERCLASS that is 3900 or higher, use initial pickle files with 4800 augmented images
 else:
     NUMPERCLASS = 4800
-    path1 = '/home/snow/nashein/hthant/weights/effnetb3/imageCheckPoint/training_shape.pkl'
-    path2 = '/home/snow/nashein/hthant/weights/effnetb3/imageCheckPoint/test_shape.pkl'
-
+    path1 = '/mnt/nas/hthant/weights/effnetb3/imageCheckPoint/training_shape.pkl'
+    path2 = '/mnt/nas/hthant/weights/effnetb3/imageCheckPoint/test_shape.pkl'
+'''
 if(exists(path1) and exists(path2)):
     file1 = open(path1, 'rb')
     training = pickle.load(file1)
@@ -284,17 +285,19 @@ if(exists(path1) and exists(path2)):
     test_images, test_labels = testing
     file2.close()
 else:
-    train_images, train_labels, test_images, test_labels = subsetData(filterData(loadData("/home/snow/masc_data/")), NUMPERCLASS, TRAINSPLIT)
-    training = train_images, train_labels
-    testing = test_images, test_labels
+'''
 
-    file1 = open(path1, 'wb')
-    pickle.dump(training, file1)
-    file1.close()
+train_images, train_labels, test_images, test_labels = subsetData(filterData(loadData("/home/snow/masc_data/")), NUMPERCLASS, TRAINSPLIT)
+training = train_images, train_labels
+testing = test_images, test_labels
 
-    file2 = open(path2, 'wb')
-    pickle.dump(testing, file2)
-    file2.close()
+file1 = open(path1, 'wb')
+pickle.dump(training, file1)
+file1.close()
+
+file2 = open(path2, 'wb')
+pickle.dump(testing, file2)
+file2.close()
 
 print("Generating training and testing images...")
 train_images_generator = xbatcher.BatchGenerator(train_images,input_dims={'flake_id':BATCHSIZE})
@@ -308,22 +311,21 @@ print("Generation complete, now training model...")
 
 # Check if training proccess produces any errors, sending a message to Discord after program termination/completion
 try:
-    gput = []
-    for i in range(0, 10):
-        model = getModel()
-        time_before = dt.now()
-        model, history = train(model, train_generator, test_generator)
-        time_after = dt.now()
-        time_dif = time_after - time_before
-        minutes = divmod(time_dif.total_seconds(), 60)
-        #print("Training complete! Total minutes taken to train {} epochs on {} GPUs with {} images: {:.2f} minutes".format(EPOCHS, 1, NUMPERCLASS, minutes[0]))
-        gput.append(minutes)
+    model = getModel()
+    #Measure time taken per epoch
+    '''
+    time_before = dt.now()
+    model, history = train(model, train_generator, test_generator)
+    time_after = dt.now()
+    time_dif = time_after - time_before
+    minutes = divmod(time_dif.total_seconds(), 60)
+    '''
+    print("Training complete! Check the results of the training above.")
     webhook = dw(url=url, content="ML Training Done")
     # 3 GPUs: 227 minutes
     # 2 GPUs: 219 minutes
     # 1 GPU : 219 minutes
     response = webhook.execute()
-    print(gput)
 
 # Any errors are caught here
 except Exception as e:
@@ -332,3 +334,4 @@ except Exception as e:
     response = webhook.execute()
 
 print("\nfin\n")
+
